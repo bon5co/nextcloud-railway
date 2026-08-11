@@ -14,7 +14,9 @@ PORT_ACTUAL="${PORT:-8080}"
 # start command for this, so it is not specific to this build. Force the state
 # the image intends, and ignore the failures when a module is already in it.
 a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true
+rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.*
 a2enmod mpm_prefork >/dev/null 2>&1 || true
+echo "[railway] mpm: $(ls /etc/apache2/mods-enabled | grep -i mpm | tr '\n' ' ')| loads: $(grep -rl 'LoadModule mpm' /etc/apache2 2>/dev/null | grep -v mods-available | tr '\n' ' ')"
 
 # 1. Apache listens on the port Railway injected.
 #
