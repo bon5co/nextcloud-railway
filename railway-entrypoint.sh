@@ -5,6 +5,17 @@ set -e
 
 PORT_ACTUAL="${PORT:-8080}"
 
+# 0. Exactly one MPM.
+#
+# The image enables mpm_prefork alone, and `apache2ctl -M` in a local container
+# agrees — but on Railway the same image dies at start with
+# "AH00534: apache2: Configuration error: More than one MPM loaded." and
+# crash-loops. Both competing listings carry an `a2dismod mpm_event` in their
+# start command for this, so it is not specific to this build. Force the state
+# the image intends, and ignore the failures when a module is already in it.
+a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true
+a2enmod mpm_prefork >/dev/null 2>&1 || true
+
 # 1. Apache listens on the port Railway injected.
 #
 # The image bakes `Listen 80` and a <VirtualHost *:80>. Railway's HTTP
