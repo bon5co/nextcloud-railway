@@ -36,12 +36,15 @@ esac
 if [ -n "$MEM_MB" ] && [ "$MEM_MB" -gt 0 ] 2>/dev/null; then
     PHP_MB=$(( MEM_MB / 4 ))
     [ "$PHP_MB" -lt 512 ] && PHP_MB=512
-    PHP_MEMORY_LIMIT="${PHP_MEMORY_LIMIT:-${PHP_MB}M}"
+    # NOT ${PHP_MEMORY_LIMIT:-...}: the base image already sets PHP_MEMORY_LIMIT
+    # to 512M in its own ENV, so a :- default would never fire. The deployer's
+    # override has its own name.
+    PHP_MEMORY_LIMIT="${NEXTCLOUD_PHP_MEMORY_LIMIT:-${PHP_MB}M}"
     export PHP_MEMORY_LIMIT
     OPC_MB=$(( MEM_MB / 16 ))
     [ "$OPC_MB" -lt 128 ] && OPC_MB=128
     [ "$OPC_MB" -gt 512 ] && OPC_MB=512
-    PHP_OPCACHE_MEMORY_CONSUMPTION="${PHP_OPCACHE_MEMORY_CONSUMPTION:-$OPC_MB}"
+    PHP_OPCACHE_MEMORY_CONSUMPTION="${NEXTCLOUD_PHP_OPCACHE_MB:-$OPC_MB}"
     export PHP_OPCACHE_MEMORY_CONSUMPTION
 fi
 
