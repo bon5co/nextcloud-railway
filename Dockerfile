@@ -47,7 +47,14 @@ RUN chmod +x /usr/local/bin/railway-entrypoint.sh \
 # `occ maintenance:install` with an empty --admin-user, prints
 # "Set an admin Login." and retries ten times at ten-second intervals before
 # `exit 1` (/entrypoint.sh:256-268), so the deploy never serves one request.
-ENV NEXTCLOUD_ADMIN_USER=admin \
+# POSTGRES_DB / POSTGRES_USER are baked for the same reason: on the generated
+# template they would be literals, and templateGenerate drops a literal default
+# and republishes the variable as blank-and-required. `postgres:17-alpine` with
+# only POSTGRES_PASSWORD set creates the user `postgres` and a database of the
+# same name, which is what these match.
+ENV POSTGRES_DB=postgres \
+    POSTGRES_USER=postgres \
+    NEXTCLOUD_ADMIN_USER=admin \
     NEXTCLOUD_DATA_DIR=/var/www/html/data \
     NEXTCLOUD_UPDATE=1 \
     PHP_UPLOAD_LIMIT=16G
