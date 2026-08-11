@@ -28,14 +28,27 @@ if [ -n "$DOMAIN" ]; then
     occ config:system:set trusted_domains 1 --value="$DOMAIN"
 fi
 
-# 2. Trusted proxy handling.
+# 2. Trusted proxies, so the client address is the client's.
 #
-# Apache has already rewritten REMOTE_ADDR to the first X-Forwarded-For hop
-# (see railway-remoteip.conf), so PHP sees the real client and Nextcloud needs
-# no trusted_proxies of its own. Setting one here would be actively wrong: with
-# REMOTE_ADDR already the client, Nextcloud would go looking for a further
-# forwarded header and take whatever a caller sent.
-occ config:system:delete trusted_proxies >/dev/null 2>&1 || true
+# The container's peer address on Railway is always the edge (100.64.0.0/10),
+# so out of the box every request — every login attempt, every brute-force
+# counter, every audit line — is attributed to one address. Measured on the
+# stock image: eight failed WebDAV logins from eight distinct X-Forwarded-For
+# clients recorded 0 attempts against each client and 8 against the peer, with
+# a 25000 ms delay on that single shared bucket. That throttle punishes every
+# user of the instance at once and singles out nobody.
+#
+# X-Real-IP is written by Apache from the FIRST X-Forwarded-For hop
+# (railway-remoteip.conf) because Railway's edge appends itself to the header
+# and that hop rotates per request. Trusting it is safe here because Railway
+# REPLACES any inbound X-Forwarded-For at the edge, so the first address is the
+# real client and a caller cannot forge it.
+IDX=0
+for PROXY in 127.0.0.1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 ::1 fd00::/8; do
+    occ config:system:set trusted_proxies "$IDX" --value="$PROXY"
+    IDX=$((IDX+1))
+done
+occ config:system:set forwarded_for_headers 0 --value=HTTP_X_REAL_IP
 
 # 3. Redis for distributed cache and file locking, APCu for the local cache.
 #
