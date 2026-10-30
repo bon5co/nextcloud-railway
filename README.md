@@ -1,5 +1,9 @@
 # nextcloud-railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/nextcloud-or-just-updated-google-drive-a?referralCode=Z1xivh&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
+**Deploy on Railway:** [Nextcloud template](https://railway.com/deploy/nextcloud-or-just-updated-google-drive-a?referralCode=Z1xivh&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
 Railway-tuned wrapper around the official `nextcloud:34.0.2-apache` image, used by the
 [Nextcloud Railway template](https://railway.com/templates).
 
